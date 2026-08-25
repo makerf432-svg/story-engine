@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metaphor Story Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 flex flex-col items-center">
+
+    <main class="max-w-3xl w-full space-y-6">
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl font-bold tracking-tight text-indigo-400">Story Sparks Engine</h1>
+            <p class="text-slate-400 text-sm">Two-tier creative generation powered by Gemma</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+            <label class="block text-sm font-medium text-slate-300">Your Story Premise / Summary</label>
+            <textarea id="summaryInput" rows="4" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500" 
+                placeholder="e.g., A detective finds out that all crimes in the city were committed by his future self..."></textarea>
+            
+            <button id="generateBtn" onclick="generate()" 
+                class="w-full bg-indigo-600 hover:bg-indigo-500 transition py-2.5 rounded-lg font-medium text-sm">
+                Generate Creative Story
+            </button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loader" class="hidden text-center py-6 space-y-2">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500 border-r-transparent"></div>
+            <p class="text-sm text-slate-400">Drafting metaphors & weaving your story...</p>
+        </div>
+
+        <!-- Output Cards -->
+        <div id="results" class="hidden space-y-6">
+            <!-- Sparks Card -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-2">Random Metaphor Sparks (Step 1)</h3>
+                <div id="sparksOutput" class="text-xs text-slate-400 whitespace-pre-line leading-relaxed"></div>
+            </div>
+
+            <!-- Final Story Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-3">Generated Story (Step 2)</h3>
+                <div id="storyOutput" class="text-slate-200 text-sm whitespace-pre-line leading-relaxed"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function generate() {
+        const summary = document.getElementById('summaryInput').value.trim();
+        if (!summary) return alert("Please enter a summary!");
+        const btn = document.getElementById('generateBtn'); 
+        const loader = document.getElementById('loader');
+        const results = document.getElementById('results');
+
+        btn.disabled = true;
+        btn.classList.add('opacity-50');
+        loader.classList.remove('hidden');
+        results.classList.add('hidden');
+
+        try {
+            const res = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ summary })
+        });
+        
+        // 🔴 Safely handle non-JSON / error responses:
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Server Error (${res.status}): ${errText}`);
+        }
+
+        const data = await res.json();
+        document.getElementById('sparksOutput').innerText = data.sparks;
+        document.getElementById('storyOutput').innerText = data.story;
+        results.classList.remove('hidden');
+    } catch (err) {
+        alert(err.message);
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+        loader.classList.add('hidden');
+    }
+}
+    </script>
+</body>
+</html>
