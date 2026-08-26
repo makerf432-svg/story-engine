@@ -3,90 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metaphor Story Engine</title>
+    <title>Story Sparks Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-6 flex flex-col items-center">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 flex justify-center">
 
-    <main class="max-w-3xl w-full space-y-6">
-        <header class="text-center space-y-2">
-            <h1 class="text-3xl font-bold tracking-tight text-indigo-400">Story Sparks Engine</h1>
-            <p class="text-slate-400 text-sm">Two-tier creative generation powered by Gemma</p>
-        </header>
+    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="space-y-6 lg:col-span-1">
+            <div class="space-y-1">
+                <h1 class="text-2xl font-black tracking-tight text-indigo-400">Story Sparks</h1>
+                <p class="text-xs text-slate-400">Two-Tier Lateral Creative Writing Engine</p>
+            </div>
 
-        <!-- Input Section -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-            <label class="block text-sm font-medium text-slate-300">Your Story Premise / Summary</label>
-            <textarea id="summaryInput" rows="4" 
-                class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500" 
-                placeholder="e.g., A detective finds out that all crimes in the city were committed by his future self..."></textarea>
+            <!-- Limits & Specs -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
+                <h2 class="font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <span>🛡️</span> Usage & Limits
+                </h2>
+                <div class="space-y-1.5 text-slate-400">
+                    <p><span class="text-slate-200 font-medium">Daily Quota:</span> 50 requests / 20 hours</p>
+                    <p><span class="text-slate-200 font-medium">Architecture:</span> Two-Tier Lateral Engine</p>
+                    <p><span class="text-slate-200 font-medium">Pipeline:</span> Catalyst Collision → Dual-Pass Polish</p>
+                </div>
+            </div>
+
+            <!-- Roadmap -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
+                <h2 class="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                    <span>🚀</span> Roadmap / Upcoming
+                </h2>
+                <ul class="space-y-2 text-slate-400 list-disc list-inside">
+                    <li><span class="text-slate-300">Thematic Genre Packs:</span> Genre will be added to choose and direct ai for the needed theme</li>
+                    <li><span class="text-slate-300">Chaos Slider:</span> Control intensity of injected metaphors.</li>
+                    <li><span class="text-slate-300">Character Persistence:</span> Lock names and traits across stories.</li>
+                    <li><span class="text-slate-300">Export:</span> Instant Markdown and PDF export.</li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN WORKSPACE ================= -->
+        <main class="lg:col-span-2 space-y-6">
             
-            <button id="generateBtn" onclick="generate()" 
-                class="w-full bg-indigo-600 hover:bg-indigo-500 transition py-2.5 rounded-lg font-medium text-sm">
-                Generate Creative Story
-            </button>
-        </div>
+            <!-- Input Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+                <label class="block text-sm font-medium text-slate-300">Story Premise / Summary</label>
+                <textarea id="summaryInput" rows="4" 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500 transition" 
+                    placeholder="Describe your story idea, characters, or situation..."></textarea>
+                
+                <!-- Toggle: Deep Polish Thinking -->
+                <div class="flex items-center justify-between pt-1 border-t border-slate-800">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-semibold text-slate-200">✨ Deep Editorial Polish</span>
+                        <span class="text-[11px] text-slate-400">Uses High Reasoning to refine tone, pacing, and flow</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="deepEditToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
 
-        <!-- Loading Indicator -->
-        <div id="loader" class="hidden text-center py-6 space-y-2">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500 border-r-transparent"></div>
-            <p class="text-sm text-slate-400">Drafting metaphors & weaving your story...</p>
-        </div>
-
-        <!-- Output Cards -->
-        <div id="results" class="hidden space-y-6">
-            <!-- Sparks Card -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-2">Random Metaphor Sparks (Step 1)</h3>
-                <div id="sparksOutput" class="text-xs text-slate-400 whitespace-pre-line leading-relaxed"></div>
+                <button id="generateBtn" onclick="generate()" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 transition py-2.5 rounded-lg font-medium text-sm">
+                    Generate Creative Story
+                </button>
             </div>
 
-            <!-- Final Story Card -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-3">Generated Story (Step 2)</h3>
-                <div id="storyOutput" class="text-slate-200 text-sm whitespace-pre-line leading-relaxed"></div>
+            <!-- Loader -->
+            <div id="loader" class="hidden text-center py-8 space-y-2">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500 border-r-transparent"></div>
+                <p id="loaderText" class="text-xs text-slate-400">Forging sparks & drafting your story...</p>
             </div>
-        </div>
-    </main>
+
+            <!-- Results Output -->
+            <div id="results" class="hidden space-y-6">
+                <!-- Metaphors Card -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-2">Generated Catalyst Metaphors</h3>
+                    <div id="sparksOutput" class="text-xs text-slate-300 whitespace-pre-line leading-relaxed"></div>
+                </div>
+
+                <!-- Final Story Card with Copy Button -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 relative space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Final Polished Story</h3>
+                        <button onclick="copyStory()" id="copyBtn" 
+                            class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                            <span>📋</span> Copy Story
+                        </button>
+                    </div>
+                    <div id="storyOutput" class="text-slate-200 text-sm whitespace-pre-line leading-relaxed pt-1"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
 
     <script>
         async function generate() {
-        const summary = document.getElementById('summaryInput').value.trim();
-        if (!summary) return alert("Please enter a summary!");
-        const btn = document.getElementById('generateBtn'); 
-        const loader = document.getElementById('loader');
-        const results = document.getElementById('results');
+            const summary = document.getElementById('summaryInput').value.trim();
+            const deepEdit = document.getElementById('deepEditToggle').checked;
+            if (!summary) return alert("Please enter a story premise!");
 
-        btn.disabled = true;
-        btn.classList.add('opacity-50');
-        loader.classList.remove('hidden');
-        results.classList.add('hidden');
+            const btn = document.getElementById('generateBtn');
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            const results = document.getElementById('results');
 
-        try {
-            const res = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ summary })
-        });
-        
-        // 🔴 Safely handle non-JSON / error responses:
-        if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(`Server Error (${res.status}): ${errText}`);
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            loader.classList.remove('hidden');
+            results.classList.add('hidden');
+
+            loaderText.innerText = deepEdit 
+                ? "Drafting & running high-reasoning editorial polish..." 
+                : "Forging catalyst sparks & drafting story...";
+
+            try {
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ summary, deep_edit: deepEdit })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.detail || `Server error (${res.status})`);
+                }
+
+                document.getElementById('sparksOutput').innerText = data.sparks;
+                document.getElementById('storyOutput').innerText = data.story;
+                results.classList.remove('hidden');
+                
+                // Smooth scroll to results
+                results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                loader.classList.add('hidden');
+            }
         }
 
-        const data = await res.json();
-        document.getElementById('sparksOutput').innerText = data.sparks;
-        document.getElementById('storyOutput').innerText = data.story;
-        results.classList.remove('hidden');
-    } catch (err) {
-        alert(err.message);
-    } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50');
-        loader.classList.add('hidden');
-    }
-}
+        function copyStory() {
+            const storyText = document.getElementById('storyOutput').innerText;
+            navigator.clipboard.writeText(storyText).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.innerHTML = '<span>✅</span> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<span>📋</span> Copy Story';
+                }, 2000);
+            });
+        }
     </script>
 </body>
 </html>

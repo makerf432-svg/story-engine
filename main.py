@@ -12,16 +12,13 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-# 1. Base Directory
 BASE_DIR = Path(__file__).parent
 
-# 2. Load API keys
 load_dotenv(BASE_DIR / "api.env")
+
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
-    raise ValueError(
-        "Missing API Key! Please set GEMINI_API_KEY or GOOGLE_API_KEY in your env file."
-    )
+    raise ValueError("Missing API Key! Please set it in your env file.")
 
 client = genai.Client(api_key=api_key)
 
@@ -35,36 +32,35 @@ app.add_middleware(
 )
 
 # -------------------------------------------------------------
-# 🛡️ IP RATE LIMITER CONFIGURATION (50 requests per 20 hours)
+# 🛡️ RATE LIMITER (Check first, record only on success)
 # -------------------------------------------------------------
 RATE_LIMIT_COUNT = 50
-RATE_LIMIT_WINDOW = 20 * 60 * 60  # 20 hours in seconds (72,000s)
+RATE_LIMIT_WINDOW = 20 * 60 * 60  # 20 hours
 ip_request_history = defaultdict(list)
 
 
-def check_rate_limit(client_ip: str):
-    """Tracks and enforces the 50 reqs / 20 hours limit per IP."""
+def enforce_rate_limit(client_ip: str):
     now = time.time()
-    cutoff_time = now - RATE_LIMIT_WINDOW
-
-    # Filter out requests older than 20 hours
+    cutoff = now - RATE_LIMIT_WINDOW
+    # Purge expired timestamps
     ip_request_history[client_ip] = [
-        t for t in ip_request_history[client_ip] if t > cutoff_time
+        t for t in ip_request_history[client_ip] if t > cutoff
     ]
 
-    # Check if user exceeded the limit
     if len(ip_request_history[client_ip]) >= RATE_LIMIT_COUNT:
         raise HTTPException(
             status_code=429,
-            detail=f"Rate limit exceeded! You can only make {RATE_LIMIT_COUNT} requests every 20 hours.",
+            detail=f"Rate limit reached! You have used your {RATE_LIMIT_COUNT} generations for this 20-hour window.",
         )
 
-    # Record current request timestamp
-    ip_request_history[client_ip].append(now)
+
+def record_successful_request(client_ip: str):
+    ip_request_history[client_ip].append(time.time())
 
 
 class StoryRequest(BaseModel):
     summary: str
+    deep_edit: bool = False
 
 
 def clean_output(text: str) -> str:
@@ -88,44 +84,41 @@ def get_random_nouns(count=10) -> list[str]:
                 if len(nouns) < count:
                     return nouns
                 return random.sample(nouns, count)
-
-    raise FileNotFoundError(
-        "Noun file not found! Please ensure 'noun2.txt' or 'nouns.txt' exists in your project folder with valid nouns."
-    )
+    raise FileNotFoundError("Noun file (noun2.txt) not found!")
 
 
 @app.post("/api/generate")
 async def generate_story(req: StoryRequest, request: Request):
-    # 1. Get Client IP Address
+    # 1. Validate Input
+    if not req.summary or not req.summary.strip():
+        raise HTTPException(status_code=400, detail="Summary cannot be empty.")
+
+    # 2. Check Rate Limit
     forwarded = request.headers.get("x-forwarded-for")
     client_ip = (
         forwarded.split(",")[0].strip()
         if forwarded
         else (request.client.host if request.client else "unknown")
     )
+    enforce_rate_limit(client_ip)
 
-    # 2. Check Rate Limit
-    check_rate_limit(client_ip)
-
-    if not req.summary.strip():
-        raise HTTPException(status_code=400, detail="Summary cannot be empty.")
-
+    # 3. Load Nouns
     try:
         nouns = get_random_nouns(10)
-    except FileNotFoundError as fnf_err:
-        raise HTTPException(status_code=404, detail=str(fnf_err))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
     # -------------------------------------------------------------
-    # STEP 1: Generate 10 isolated spark sentences
+    # STEP 1: Catalyst Sparks
     # -------------------------------------------------------------
-    step1_system = """You are a surreal sensory sentence generator.
-RULES:
-1. Output EXACTLY 10 numbered sentences (1 to 10).
-2. Do NOT write explanations, thoughts, or introductory notes.
-3. Every sentence must describe a completely different, vivid scene or image.
-4. Each sentence must strictly be isolated—no shared characters or storylines."""
+    step1_system = """You are a creative concept-blending engine.
+1. Analyze the story summary to derive implied themes, atmospheres, sensory textures, and emotions.
+2. Pair each of the 10 provided nouns with one of those derived concepts.
+3. Craft exactly 10 distinct, standalone sentences (1 per noun).
+4. STRICT ISOLATION: Do NOT write a continuous plot. Each sentence must stand on its own.
+5. Output ONLY the 10 numbered sentences."""
 
-    step1_prompt = f"Nouns: {', '.join(nouns)}\nGenerate 10 vivid, standalone sentences:"
+    step1_prompt = f"Story Summary: \"{req.summary}\"\n\nProvided Nouns: {', '.join(nouns)}\n\nGenerate 10 standalone sentences:"
 
     try:
         step1_res = client.models.generate_content(
@@ -133,63 +126,85 @@ RULES:
             contents=step1_prompt,
             config=types.GenerateContentConfig(
                 system_instruction=step1_system,
-                temperature=0.9,
-                thinking_config=types.ThinkingConfig(
-                    thinking_level="MINIMAL",
-                ),
+                temperature=0.95,
+                thinking_config=types.ThinkingConfig(thinking_level="MINIMAL"),
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             ),
         )
-
         clean_sparks = clean_output(step1_res.text or "")
         if not clean_sparks:
-            raise ValueError("Step 1 returned an empty response.")
+            raise ValueError("Step 1 returned an empty spark list.")
 
         # -------------------------------------------------------------
-        # STEP 2: Synthesize the final creative story
+        # STEP 2A: The Drafter
         # -------------------------------------------------------------
-        step2_system = "You are an imaginative literary fiction author known for rich atmospheric prose. Output only the finished story with no meta-commentary."
+        drafter_system = "You are an imaginative fiction author. Write a bold, atmospheric first draft using the provided premise and inspiration sparks."
+        drafter_prompt = f"Premise:\n{req.summary}\n\nInspiration Sparks:\n{clean_sparks}\n\nTask: Write the story draft."
 
-        step2_prompt = f"""
-Core Story Premise:
-{req.summary}
-
-Sensory Moodboard & Metaphors (Inspiration):
-{clean_sparks}
-
-Task:
-Write a captivating short story based on the user's premise. 
-Use the metaphors and imagery from the inspiration list to enrich the atmosphere and themes, but integrate them naturally into the world rather than forcing every single word verbatim.
-"""
-
-        step2_res = client.models.generate_content(
+        draft_res = client.models.generate_content(
             model="gemma-4-31b-it",
-            contents=step2_prompt,
+            contents=drafter_prompt,
             config=types.GenerateContentConfig(
-                system_instruction=step2_system,
-                temperature=0.75,
-                thinking_config=types.ThinkingConfig(
-                    thinking_level="MINIMAL",
-                ),
+                system_instruction=drafter_system,
+                temperature=0.95,
+                thinking_config=types.ThinkingConfig(thinking_level="MINIMAL"),
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             ),
         )
+        raw_draft = clean_output(draft_res.text or "")
+        if not raw_draft:
+            raise ValueError("Step 2A returned an empty draft.")
 
-        clean_story = clean_output(step2_res.text or "")
-        if not clean_story:
-            raise ValueError("Step 2 returned an empty story response.")
+        # -------------------------------------------------------------
+        # STEP 2B: The Editor (with automatic fallback to draft)
+        # -------------------------------------------------------------
+        final_story = raw_draft
+        editor_thinking = "HIGH" if req.deep_edit else "MINIMAL"
+
+        editor_system = """You are a world-class literary editor. Polish the raw draft:
+1. CUT FORCED ELEMENTS: Remove awkward metaphors so prose feels 100% natural.
+2. TIGHTEN PACING: Ensure emotional resonance, flow, and vivid imagery.
+3. Output ONLY the finished story."""
+
+        editor_prompt = f"Original Premise:\n{req.summary}\n\nRaw Draft to Polish:\n{raw_draft}\n\nTask: Output the final polished story."
+
+        try:
+            editor_res = client.models.generate_content(
+                model="gemma-4-31b-it",
+                contents=editor_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=editor_system,
+                    temperature=0.9,
+                    thinking_config=types.ThinkingConfig(
+                        thinking_level=editor_thinking,
+                        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+                    ),
+                ),
+            )
+            polished = clean_output(editor_res.text or "")
+            if polished:
+                final_story = polished
+        except Exception:
+            # Safe Fallback: keep raw_draft if editor pass times out or glitches
+            pass
+
+        # 4. Record successful generation against rate limit
+        record_successful_request(client_ip)
 
         return {
             "nouns": nouns,
             "sparks": clean_sparks,
-            "story": clean_story,
+            "story": final_story,
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Generation Error: {str(e)}"
         )
 
 
-# Mount static website files
 static_path = BASE_DIR / "static"
 static_path.mkdir(exist_ok=True)
 app.mount(
