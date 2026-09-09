@@ -1,173 +1,413 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Sparks Engine</title>
+    <title>Story Sparks - Literary Writing Studio</title>
+    <meta name="description" content="AI lateral brainstorming and multi-chapter fiction engine.">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style>
+        /* Custom scrollbar matching both themes */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; }
+        [contenteditable]:focus { outline: none; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 flex justify-center">
+<body class="bg-slate-50 text-slate-800 dark:bg-[#0c0c0e] dark:text-zinc-300 min-h-screen p-3 md:p-6 font-sans antialiased transition-colors duration-300 selection:bg-amber-500/30 dark:selection:bg-amber-900/50">
 
-    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- TOP HEADER -->
+    <header class="max-w-[1400px] mx-auto flex items-center justify-between pb-5 mb-5 border-b border-slate-200 dark:border-zinc-800/60 transition-colors">
+        <div class="flex items-center gap-4">
+            <h1 class="text-xl md:text-2xl font-serif italic font-bold tracking-wide text-slate-900 dark:text-zinc-100">Story Sparks</h1>
+            <span class="text-[10px] uppercase tracking-widest bg-slate-200 border border-slate-300 dark:bg-zinc-900 dark:border-zinc-800 px-2 py-0.5 rounded-full text-slate-600 dark:text-zinc-500 transition-colors">V2 Studio</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-medium">
+            <button onclick="toggleTheme()" id="themeToggleBtn" class="text-xl hover:scale-110 transition-transform" title="Toggle Dark/Light Mode">
+                🌙
+            </button>
+            <a href="https://discord.gg/YOUR_PERMANENT_INVITE" target="_blank" class="hidden sm:flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 transition">
+                <span>💬</span> Discord
+            </a>
+            <button onclick="resetBook()" class="text-slate-500 hover:text-rose-500 dark:text-zinc-500 dark:hover:text-rose-400 transition flex items-center gap-1.5">
+                <span>✕</span> <span class="hidden sm:inline">Clear Workspace</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MOBILE TABS -->
+    <div class="max-w-[1400px] mx-auto grid grid-cols-2 gap-2 mb-4 lg:hidden">
+        <button id="mobileTabStudio" onclick="switchMobileTab('studio')" class="py-2.5 text-xs font-semibold rounded-lg bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-700/20 dark:text-amber-400 dark:border-amber-700/30 transition">
+            🖋️ Workshop
+        </button>
+        <button id="mobileTabManuscript" onclick="switchMobileTab('manuscript')" class="py-2.5 text-xs font-semibold rounded-lg bg-white text-slate-500 border border-slate-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800 transition shadow-sm">
+            📖 Manuscript <span id="mobileChapBadge" class="bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[10px] ml-1">0</span>
+        </button>
+    </div>
+
+    <!-- MAIN STUDIO WORKSPACE -->
+    <div class="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:h-[85vh]">
         
-        <!-- ================= SIDEBAR ================= -->
-        <aside class="space-y-6 lg:col-span-1">
-            <div class="space-y-1">
-                <h1 class="text-2xl font-black tracking-tight text-indigo-400">Story Sparks</h1>
-                <p class="text-xs text-slate-400">Two-Tier Lateral Creative Writing Engine</p>
-            </div>
-
-            <!-- Limits & Specs -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
-                <h2 class="font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <span>🛡️</span> Usage & Limits
-                </h2>
-                <div class="space-y-1.5 text-slate-400">
-                    <p><span class="text-slate-200 font-medium">Daily Quota:</span> 50 requests / 20 hours</p>
-                    <p><span class="text-slate-200 font-medium">Architecture:</span> Two-Tier Lateral Engine</p>
-                    <p><span class="text-slate-200 font-medium">Pipeline:</span> Catalyst Collision → Dual-Pass Polish</p>
-                </div>
-            </div>
-
-            <!-- Roadmap -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
-                <h2 class="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                    <span>🚀</span> Roadmap / Upcoming
-                </h2>
-                <ul class="space-y-2 text-slate-400 list-disc list-inside">
-                    <li><span class="text-slate-300">Thematic Genre Packs:</span> Genre will be added to choose and direct ai for the needed theme</li>
-                    <li><span class="text-slate-300">Chaos Slider:</span> Control intensity of injected metaphors.</li>
-                    <li><span class="text-slate-300">Character Persistence:</span> Lock names and traits across stories.</li>
-                    <li><span class="text-slate-300">Export:</span> Instant Markdown and PDF export.</li>
-                </ul>
-            </div>
-            <!-- Discord Community Card in Sidebar -->
-            <div class="bg-indigo-950/40 border border-indigo-800/50 rounded-xl p-4 space-y-2 text-xs">
-                <h2 class="font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <span>💬</span> Join Community
-                </h2>
-                <p class="text-slate-400">Give feedback, report bugs, and share your generated stories.</p>
-                <a href="https://discord.gg/yCTxwrdHq" target="_blank" 
-                    class="inline-block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-1.5 rounded-lg transition">
-                    Join our Discord →
-                </a>
-            </div>
-        </aside>
-
-        <!-- ================= MAIN WORKSPACE ================= -->
-        <main class="lg:col-span-2 space-y-6">
+        <!-- LEFT COLUMN: WORKSHOP -->
+        <section id="studioPanel" class="lg:col-span-4 flex flex-col h-full space-y-4 overflow-y-auto pr-2 pb-20 lg:pb-0 custom-scrollbar">
             
-            <!-- Input Card -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-                <label class="block text-sm font-medium text-slate-300">Story Premise / Summary</label>
-                <textarea id="summaryInput" rows="4" 
-                    class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500 transition" 
-                    placeholder="Describe your story idea, characters, or situation..."></textarea>
-                
-                <!-- Toggle: Deep Polish Thinking -->
-                <div class="flex items-center justify-between pt-1 border-t border-slate-800">
-                    <div class="flex flex-col">
-                        <span class="text-xs font-semibold text-slate-200">✨ Deep Editorial Polish</span>
-                        <span class="text-[11px] text-slate-400">Uses High Reasoning to refine tone, pacing, and flow</span>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="deepEditToggle" class="sr-only peer">
-                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
+            <div class="bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800/80 rounded-xl p-5 space-y-4 shrink-0 shadow-sm transition-colors">
+                <div class="flex justify-between items-center">
+                    <label class="text-[10px] font-bold text-amber-600 dark:text-amber-500/80 uppercase tracking-widest">Core Premise</label>
+                    <span class="text-[10px] text-slate-400 dark:text-zinc-600">500 Rolls / 100 Chapters</span>
                 </div>
-
-                <button id="generateBtn" onclick="generate()" 
-                    class="w-full bg-indigo-600 hover:bg-indigo-500 transition py-2.5 rounded-lg font-medium text-sm">
-                    Generate Creative Story
+                <div class="space-y-3">
+                    <textarea id="premiseInput" rows="3" maxlength="2000" class="w-full bg-slate-50 dark:bg-zinc-950/50 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-sm text-slate-800 dark:text-zinc-200 focus:border-amber-500 dark:focus:border-amber-700/50 transition resize-none placeholder-slate-400 dark:placeholder-zinc-700" placeholder="e.g. A mage prince born into a fighter royal family..."></textarea>
+                    
+                    <textarea id="characterInput" rows="2" maxlength="2000" class="w-full bg-slate-50 dark:bg-zinc-950/50 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-sm text-slate-800 dark:text-zinc-200 focus:border-amber-500 dark:focus:border-amber-700/50 transition resize-none placeholder-slate-400 dark:placeholder-zinc-700" placeholder="Characters: Samor (fighter), Alaric (mage)..."></textarea>
+                </div>
+                <button id="ch1SparksBtn" onclick="generateSparks()" class="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 transition py-2.5 rounded-lg font-bold text-xs shadow-md">
+                    Generate Catalyst Sparks
                 </button>
             </div>
 
-            <!-- Loader -->
-            <div id="loader" class="hidden text-center py-8 space-y-2">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500 border-r-transparent"></div>
-                <p id="loaderText" class="text-xs text-slate-400">Forging sparks & drafting your story...</p>
+            <!-- TIMELINE -->
+            <div id="timelineCard" class="hidden flex-col space-y-3 shrink-0">
+                <h3 class="text-[10px] font-bold text-slate-500 dark:text-zinc-500 uppercase tracking-widest px-1">Story Timeline (Editable)</h3>
+                <div id="recapsList" class="space-y-3 border-l-2 border-slate-200 dark:border-zinc-800 ml-2 pl-4 max-h-48 overflow-y-auto pr-2 custom-scrollbar"></div>
             </div>
 
-            <!-- Results Output -->
-            <div id="results" class="hidden space-y-6">
-                <!-- Metaphors Card -->
-                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
-                    <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-2">Generated Catalyst Metaphors</h3>
-                    <div id="sparksOutput" class="text-xs text-slate-300 whitespace-pre-line leading-relaxed"></div>
+            <!-- NEXT BEAT CARD -->
+            <div id="nextBeatCard" class="hidden bg-white dark:bg-zinc-900/50 border border-amber-200 dark:border-amber-900/30 rounded-xl p-5 space-y-3 relative overflow-hidden shrink-0 mt-auto shadow-sm transition-colors">
+                <div class="absolute top-0 left-0 w-1 h-full bg-amber-500 dark:bg-amber-600/50"></div>
+                <label id="nextBeatLabel" class="block text-[10px] font-bold text-amber-600 dark:text-amber-500/80 uppercase tracking-widest">Chapter X Direction</label>
+                <textarea id="nextBeatInput" rows="2" maxlength="1000" class="w-full bg-slate-50 dark:bg-zinc-950/50 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-sm text-slate-800 dark:text-zinc-200 focus:border-amber-500 dark:focus:border-amber-700/50 transition resize-none placeholder-slate-400 dark:placeholder-zinc-700" placeholder="What happens in the next scene?"></textarea>
+                <button id="continuationSparksBtn" onclick="generateSparks()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-700 transition py-2.5 rounded-lg font-bold text-xs shadow-sm">
+                    <span id="continuationSparksLabel">Generate Chapter X Sparks</span>
+                </button>
+            </div>
+
+            <!-- LOADER -->
+            <div id="loader" class="hidden py-4 flex flex-col items-center justify-center space-y-3 opacity-70 shrink-0">
+                <div class="animate-spin rounded-full h-6 w-6 border-t border-b border-amber-500"></div>
+                <p id="loaderText" class="text-[11px] uppercase tracking-widest text-slate-500 dark:text-zinc-500">Forging sparks...</p>
+            </div>
+
+            <!-- CURATOR SECTION -->
+            <div id="curatorSection" class="hidden bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-5 space-y-4 shadow-lg transition-colors shrink-0">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800/80 pb-3">
+                    <h3 class="text-[10px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-widest">Curate Sparks</h3>
+                    <button onclick="toggleAllSparks()" class="text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-zinc-300">Select All / None</button>
                 </div>
 
-                <!-- Final Story Card with Copy Button -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 relative space-y-3">
+                <div id="sparksContainer" class="space-y-2.5 max-h-56 overflow-y-auto pr-1 custom-scrollbar"></div>
+
+                <div class="space-y-3 pt-3 border-t border-slate-100 dark:border-zinc-800/80 text-xs">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Final Polished Story</h3>
-                        <button onclick="copyStory()" id="copyBtn" 
-                            class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
-                            <span>📋</span> Copy Story
-                        </button>
+                        <span class="text-slate-600 dark:text-zinc-400 font-medium">Editor Polish Pass</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="editorToggle" checked class="sr-only peer">
+                            <div class="w-8 h-4 bg-slate-300 dark:bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-zinc-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500 dark:peer-checked:bg-amber-600/80"></div>
+                        </label>
                     </div>
-                    <div id="storyOutput" class="text-slate-200 text-sm whitespace-pre-line leading-relaxed pt-1"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600 dark:text-zinc-400 font-medium">Deep Reasoning (Slow)</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="deepEditToggle" class="sr-only peer">
+                            <div class="w-8 h-4 bg-slate-300 dark:bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-zinc-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500 dark:peer-checked:bg-amber-600/80"></div>
+                        </label>
+                    </div>
                 </div>
+
+                <button id="weaveBtn" onclick="weaveChapter()" class="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 transition py-2.5 rounded-lg font-bold text-xs shadow-md mt-2">
+                    <span id="weaveBtnText">Weave Chapter 1</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: MANUSCRIPT -->
+        <section id="manuscriptPanel" class="lg:col-span-8 hidden lg:flex flex-col h-full bg-white dark:bg-[#111113] border border-slate-200 dark:border-zinc-800/60 rounded-xl overflow-hidden shadow-xl relative transition-colors">
+            
+            <div class="bg-slate-50/90 dark:bg-zinc-900/80 backdrop-blur border-b border-slate-200 dark:border-zinc-800/80 px-6 py-3 flex items-center justify-between text-xs sticky top-0 z-10 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="font-serif italic text-slate-800 dark:text-zinc-300 font-semibold">The Manuscript</span>
+                    <span class="text-slate-300 dark:text-zinc-700">|</span>
+                    <span id="statsLabel" class="text-slate-500 dark:text-zinc-500">0 Words</span>
+                </div>
+                <button onclick="copyManuscript()" id="copyBookBtn" class="text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition flex items-center gap-1.5">
+                    <span>📋</span> Copy All
+                </button>
             </div>
 
-        </main>
+            <div id="manuscriptCanvas" contenteditable="true" oninput="saveManualEdits()" spellcheck="false"
+                 class="flex-1 overflow-y-auto p-6 md:p-12 text-slate-800 dark:text-zinc-300 font-serif leading-loose text-[15px] sm:text-base outline-none relative custom-scrollbar transition-colors">
+                
+                <div id="emptyManuscriptPrompt" class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-3 select-none pointer-events-none opacity-50 dark:opacity-40">
+                    <span class="text-4xl opacity-50">🖋️</span>
+                    <p class="text-sm font-sans tracking-wide">Your story will unfold here.</p>
+                </div>
+            </div>
+        </section>
     </div>
 
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastNotification" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300">
+        <div class="bg-amber-100 border border-amber-300 text-amber-900 dark:bg-amber-950/90 dark:border-amber-500/50 dark:text-amber-200 text-xs px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 backdrop-blur-md">
+            <span>⚠️</span> <span id="toastMessage">High demand. Try again.</span>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
     <script>
-        async function generate() {
-            const summary = document.getElementById('summaryInput').value.trim();
-            const deepEdit = document.getElementById('deepEditToggle').checked;
-            if (!summary) return alert("Please enter a story premise!");
+        let bookState = { overallPremise: "", characters: "", activeChapterNum: 1, currentSparks: [], chapters: [], manuscriptHTML: "" };
 
-            const btn = document.getElementById('generateBtn');
-            const loader = document.getElementById('loader');
-            const loaderText = document.getElementById('loaderText');
-            const results = document.getElementById('results');
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            loadFromStorage();
+            syncUI();
+        });
 
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            loader.classList.remove('hidden');
-            results.classList.add('hidden');
-
-            loaderText.innerText = deepEdit 
-                ? "Drafting & running high-reasoning editorial polish..." 
-                : "Forging catalyst sparks & drafting story...";
-
-            try {
-                const res = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ summary, deep_edit: deepEdit })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    throw new Error(data.detail || `Server error (${res.status})`);
-                }
-
-                document.getElementById('sparksOutput').innerText = data.sparks;
-                document.getElementById('storyOutput').innerText = data.story;
-                results.classList.remove('hidden');
-                
-                // Smooth scroll to results
-                results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } catch (err) {
-                alert(err.message);
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-                loader.classList.add('hidden');
+        // Theme Toggle Logic
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').innerText = '☀️';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').innerText = '🌙';
             }
         }
 
-        function copyStory() {
-            const storyText = document.getElementById('storyOutput').innerText;
-            navigator.clipboard.writeText(storyText).then(() => {
-                const copyBtn = document.getElementById('copyBtn');
-                copyBtn.innerHTML = '<span>✅</span> Copied!';
-                setTimeout(() => {
-                    copyBtn.innerHTML = '<span>📋</span> Copy Story';
-                }, 2000);
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggleBtn');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
+                btn.innerText = '🌙';
+            } else {
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
+                btn.innerText = '☀️';
+            }
+        }
+
+        function saveToStorage() { try { localStorage.setItem('story_sparks_v3', JSON.stringify(bookState)); } catch(e){} }
+        function loadFromStorage() { try { const saved = localStorage.getItem('story_sparks_v3'); if (saved) bookState = JSON.parse(saved); } catch(e){} }
+
+        function saveManualEdits() {
+            const canvas = document.getElementById('manuscriptCanvas');
+            bookState.manuscriptHTML = canvas.innerHTML;
+            const text = canvas.innerText || "";
+            document.getElementById('statsLabel').innerText = `${(text.trim() ? text.trim().split(/\s+/).length : 0).toLocaleString()} Words`;
+            saveToStorage();
+        }
+
+        function resetBook() {
+            if (bookState.chapters.length > 0 && !confirm("Clear manuscript and start over?")) return;
+            localStorage.removeItem('story_sparks_v3');
+            bookState = { overallPremise: "", characters: "", activeChapterNum: 1, currentSparks: [], chapters: [], manuscriptHTML: "" };
+            document.getElementById('premiseInput').value = ""; document.getElementById('characterInput').value = ""; document.getElementById('nextBeatInput').value = "";
+            document.getElementById('manuscriptCanvas').innerHTML = `<div id="emptyManuscriptPrompt" class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-3 select-none pointer-events-none opacity-40"><span class="text-4xl opacity-50">🖋️</span><p class="text-sm font-sans tracking-wide">Your story will unfold here.</p></div>`;
+            syncUI(); switchMobileTab('studio');
+        }
+
+        function switchMobileTab(tab) {
+            const studioPanel = document.getElementById('studioPanel'); const manuscriptPanel = document.getElementById('manuscriptPanel');
+            const tabStudio = document.getElementById('mobileTabStudio'); const tabManuscript = document.getElementById('mobileTabManuscript');
+            const actLight = "py-2.5 text-xs font-semibold rounded-lg bg-amber-100 text-amber-700 border border-amber-200 transition flex items-center justify-center gap-1.5";
+            const actDark = "dark:bg-amber-700/20 dark:text-amber-400 dark:border-amber-700/30";
+            const inLight = "py-2.5 text-xs font-semibold rounded-lg bg-white text-slate-500 border border-slate-200 transition shadow-sm flex items-center justify-center gap-1.5";
+            const inDark = "dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800";
+
+            if (tab === 'studio') {
+                studioPanel.classList.remove('hidden'); manuscriptPanel.classList.add('hidden', 'lg:flex');
+                tabStudio.className = `${actLight} ${actDark}`; tabManuscript.className = `${inLight} ${inDark}`;
+            } else {
+                studioPanel.classList.add('hidden'); manuscriptPanel.classList.remove('hidden'); manuscriptPanel.classList.add('flex');
+                tabManuscript.className = `${actLight} ${actDark}`; tabStudio.className = `${inLight} ${inDark}`;
+            }
+        }
+
+        function updateRecapText(index, value) { bookState.chapters[index].recap = value; saveToStorage(); }
+
+        function syncUI() {
+            document.getElementById('premiseInput').value = bookState.overallPremise || "";
+            document.getElementById('characterInput').value = bookState.characters || "";
+            const isChapterOne = bookState.activeChapterNum === 1;
+            
+            document.getElementById('ch1SparksBtn').classList.toggle('hidden', !isChapterOne);
+            document.getElementById('timelineCard').classList.toggle('hidden', isChapterOne);
+            document.getElementById('nextBeatCard').classList.toggle('hidden', isChapterOne);
+
+            const recapsList = document.getElementById('recapsList');
+            recapsList.innerHTML = '';
+            bookState.chapters.forEach((chap, idx) => {
+                recapsList.innerHTML += `
+                    <div class="relative bg-slate-50 dark:bg-zinc-900/80 p-3 rounded-lg border border-slate-200 dark:border-zinc-800 transition-colors">
+                        <div class="absolute -left-[21px] top-4 w-2 h-2 rounded-full bg-slate-300 dark:bg-zinc-600 transition-colors"></div>
+                        <label class="block text-[10px] font-bold text-slate-500 dark:text-zinc-500 uppercase tracking-widest mb-1.5">Chapter ${chap.chapterNum} Summary</label>
+                        <textarea oninput="updateRecapText(${idx}, this.value)" rows="2" 
+                            class="w-full bg-transparent text-xs text-slate-700 dark:text-zinc-300 focus:outline-none resize-none leading-relaxed">${chap.recap}</textarea>
+                    </div>`;
+            });
+
+            document.getElementById('nextBeatLabel').innerText = `Chapter ${bookState.activeChapterNum} Direction`;
+            document.getElementById('continuationSparksLabel').innerText = `Generate Chapter ${bookState.activeChapterNum} Sparks`;
+            document.getElementById('weaveBtnText').innerText = `Weave Chapter ${bookState.activeChapterNum}`;
+            document.getElementById('mobileChapBadge').innerText = bookState.chapters.length;
+
+            if (bookState.currentSparks.length > 0) {
+                renderSparkCards(); document.getElementById('curatorSection').classList.remove('hidden');
+            } else { document.getElementById('curatorSection').classList.add('hidden'); }
+
+            const canvas = document.getElementById('manuscriptCanvas');
+            if (bookState.manuscriptHTML) {
+                canvas.innerHTML = bookState.manuscriptHTML;
+                const text = canvas.innerText || "";
+                document.getElementById('statsLabel').innerText = `${(text.trim() ? text.trim().split(/\s+/).length : 0).toLocaleString()} Words`;
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').innerText = message;
+            toast.classList.remove('hidden'); toast.classList.add('opacity-100');
+            setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('opacity-0'); }, 300); }, 4000);
+        }
+
+        async function generateSparks() {
+            const isCh1 = bookState.activeChapterNum === 1;
+            let promptText = isCh1 ? document.getElementById('premiseInput').value.trim() : document.getElementById('nextBeatInput').value.trim();
+            if (isCh1) { bookState.characters = document.getElementById('characterInput').value.trim(); bookState.overallPremise = promptText; }
+            if (!promptText) return alert("Please enter the premise or direction!");
+
+            const btnId = isCh1 ? 'ch1SparksBtn' : 'continuationSparksBtn';
+            document.getElementById(btnId).disabled = true;
+            document.getElementById('loader').classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/sparks', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ summary: promptText, characters: bookState.characters })
+                });
+                let data; try { data = await res.json(); } catch(e) { throw new Error("Server overloaded. Try again."); }
+                if (!res.ok) throw new Error(data.detail || "Spark generation failed");
+
+                bookState.currentSparks = data.sparks; saveToStorage(); renderSparkCards();
+                document.getElementById('curatorSection').classList.remove('hidden');
+                document.getElementById('curatorSection').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) { showToast(err.message); } 
+            finally { document.getElementById(btnId).disabled = false; document.getElementById('loader').classList.add('hidden'); }
+        }
+
+        function renderSparkCards() {
+            const container = document.getElementById('sparksContainer');
+            container.innerHTML = '';
+            bookState.currentSparks.forEach((spark, idx) => {
+                const card = document.createElement('div');
+                card.className = "flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 hover:border-slate-300 dark:bg-zinc-950 dark:border-zinc-800 dark:hover:border-zinc-700 rounded-lg transition group";
+                card.innerHTML = `
+                    <input type="checkbox" checked value="${idx}" class="spark-checkbox mt-0.5 accent-amber-600 rounded cursor-pointer">
+                    <span id="spark-text-${idx}" class="text-xs text-slate-700 dark:text-zinc-400 group-hover:text-slate-900 dark:group-hover:text-zinc-300 transition leading-relaxed flex-1 cursor-pointer" onclick="this.previousElementSibling.click()">${spark}</span>
+                    <button onclick="rerollSingleSpark(${idx})" title="Reroll" class="text-xs text-slate-400 hover:text-amber-500 dark:text-zinc-600 dark:hover:text-amber-400 p-1 transition shrink-0">🎲</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleAllSparks() {
+            const checkboxes = document.querySelectorAll('.spark-checkbox');
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            checkboxes.forEach(c => c.checked = !allChecked);
+        }
+
+        async function rerollSingleSpark(idx) {
+            const isCh1 = bookState.activeChapterNum === 1;
+            const promptText = isCh1 ? bookState.overallPremise : document.getElementById('nextBeatInput').value.trim();
+            const textSpan = document.getElementById(`spark-text-${idx}`);
+            textSpan.innerHTML = '<span class="text-amber-600 dark:text-amber-500 italic animate-pulse">Rolling fresh catalyst...</span>';
+
+            try {
+                const res = await fetch('/api/reroll-spark', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ summary: promptText, characters: bookState.characters })
+                });
+                let data; try { data = await res.json(); } catch(e) { throw new Error("Server overloaded."); }
+                if (!res.ok) throw new Error(data.detail || "Reroll failed");
+
+                bookState.currentSparks[idx] = data.spark; textSpan.innerText = data.spark; saveToStorage();
+            } catch (err) { showToast(err.message); textSpan.innerText = bookState.currentSparks[idx]; }
+        }
+
+        async function weaveChapter() {
+            const selectedSparks = Array.from(document.querySelectorAll('.spark-checkbox:checked')).map(c => bookState.currentSparks[parseInt(c.value)]);
+            if (selectedSparks.length === 0) return alert("Check at least one spark!");
+
+            bookState.characters = document.getElementById('characterInput').value.trim();
+            const enableEditor = document.getElementById('editorToggle').checked;
+            const deepEdit = document.getElementById('deepEditToggle').checked;
+            
+            document.getElementById('weaveBtn').disabled = true; document.getElementById('loader').classList.remove('hidden');
+
+            try {
+                let res, data;
+                if (bookState.activeChapterNum === 1) {
+                    res = await fetch('/api/synthesize', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ summary: bookState.overallPremise, characters: bookState.characters, curated_sparks: selectedSparks, enable_editor: enableEditor, deep_edit: deepEdit })
+                    });
+                    try { data = await res.json(); } catch(e) { throw new Error("High demand. Try again."); }
+                    if (!res.ok) throw new Error(data.detail || "Failed");
+
+                    bookState.chapters = [{ chapterNum: 1, story: data.story, recap: data.recap }];
+                } else {
+                    const nextBeat = document.getElementById('nextBeatInput').value.trim();
+                    const combinedRecap = bookState.chapters.map(c => `Chapter ${c.chapterNum}: ${c.recap}`).join('\n');
+                    const canvasText = document.getElementById('manuscriptCanvas').innerText || "";
+                    const sentences = canvasText.match(/[^.!?\n]+[.!?]+/g) || [canvasText];
+                    let handoffAnchor = sentences.slice(-3).join(' ').trim();
+                    if (handoffAnchor.length > 600) handoffAnchor = handoffAnchor.substring(handoffAnchor.length - 600);
+
+                    res = await fetch('/api/continue-chapter', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ overall_premise: bookState.overallPremise, characters: bookState.characters, rolling_recap: combinedRecap, handoff_anchor: handoffAnchor, next_beat: nextBeat, curated_sparks: selectedSparks, enable_editor: enableEditor, deep_edit: deepEdit, chapter_num: bookState.activeChapterNum })
+                    });
+                    try { data = await res.json(); } catch(e) { throw new Error("High demand. Try again."); }
+                    if (!res.ok) throw new Error(data.detail || "Failed");
+
+                    bookState.chapters.push({ chapterNum: bookState.activeChapterNum, story: data.story, recap: data.recap });
+                }
+
+                const canvas = document.getElementById('manuscriptCanvas');
+                if (document.getElementById('emptyManuscriptPrompt')) document.getElementById('emptyManuscriptPrompt').remove();
+                
+                const newChapDiv = document.createElement('div');
+                newChapDiv.className = "mb-8 outline-none";
+                newChapDiv.innerHTML = `<h2 class="text-lg md:text-xl font-sans font-bold text-slate-800 dark:text-zinc-100 mb-4 mt-8 opacity-90 dark:opacity-80 select-none">Chapter ${bookState.activeChapterNum}</h2><p class="whitespace-pre-line">${data.story}</p>`;
+                canvas.appendChild(newChapDiv);
+                
+                saveManualEdits();
+                bookState.activeChapterNum++;
+                bookState.currentSparks = [];
+                document.getElementById('nextBeatInput').value = "";
+                document.getElementById('curatorSection').classList.add('hidden');
+                
+                saveToStorage(); syncUI();
+
+                if (window.innerWidth < 1024) switchMobileTab('manuscript');
+                setTimeout(() => { newChapDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+
+            } catch (err) { showToast(err.message); } 
+            finally { document.getElementById('weaveBtn').disabled = false; document.getElementById('loader').classList.add('hidden'); }
+        }
+
+        function copyManuscript() {
+            const text = document.getElementById('manuscriptCanvas').innerText;
+            if (!text.trim()) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBookBtn');
+                btn.innerHTML = '<span>✅</span> Copied';
+                setTimeout(() => { btn.innerHTML = '<span>📋</span> Copy All'; }, 2000);
             });
         }
     </script>
